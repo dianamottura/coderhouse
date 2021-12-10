@@ -1,0 +1,52 @@
+.containerHeader {
+    background-color: rgb(188, 195, 202);
+}
+
+.carrito  {
+    font-size: 6rem;
+}
+
+.containerMain {
+    background-color: rgb(223, 212, 197);
+}
+
+.h2Titulo {
+    text-align: center;
+    font-size: 3rem;
+}
+
+.tituloH3 {
+    text-align: center;
+}
+
+.pTitulo {
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.rowTarjetas {
+    margin-left: 6%;
+}
+
+.textoTarjetas {
+    text-align: center;
+}
+
+.h5Tarjetas {
+    text-align: center;
+}
+
+.btnTarjetas {
+    border: none;
+    border-radius: 6px;
+    background-color: rgb(175, 161, 140);
+}
+
+.containerFooter {
+    background-color: rgb(188, 195, 202);
+}
+
+.containerFooterUl {
+    list-style: none;
+    text-align: center;
+}
