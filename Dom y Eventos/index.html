@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Netflix</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+
+    <body>
+        <h1>Menu Peliculas</h1>
+        <button id="darkMode">Dark Mode</button>
+        <button id="mostrarMenu">Mostrar menu</button>
+        <div id="menuAgregar" class="oculto">
+            <form id="formularioPeliculas">
+                <input id="nombre" type="text" autocomplete="off" placeholder="Nombre" />
+                <input id="duracion" type="number" autocomplete="off" placeholder="Duracion" />
+                <input id="genero" type="text" autocomplete="off" placeholder="Genero" />
+                <input id="btn" type="submit" value="Agregar Pelicula" />
+            </form>
+        </div>
+
+        <div id="listado"></div>
+
+        <div id="listadoFavoritos"></div>
+
+        <script src="01_CreandoInstancias.js"></script>
+    </body>
+</html>

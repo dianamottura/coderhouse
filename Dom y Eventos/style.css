@@ -1,0 +1,20 @@
+.oculto{
+    display: none;
+}
+
+#mostrarMenu{
+    margin-bottom: 1em;
+}
+
+#btn{
+    margin-top: 1em;
+}
+
+.tarjeta {
+    background-color: lightgrey;
+    margin: 1vh;
+}
+
+.darkMode {
+    background-color: gray;
+}
