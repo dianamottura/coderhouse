@@ -1,4 +1,4 @@
-// Versión sin uso de Storage
+// Versión con uso de Storage
 
 // El orden en el código es
 // 1. Constructores de clase
@@ -12,11 +12,11 @@
 // no importa si no son alumnos mios ^_^
 
 class Alfajor {
-  constructor(alfajor) {
+  constructor(alfajor, cantidad) {
     this.id = alfajor.id;
     this.marca = alfajor.marca;
     this.precio = alfajor.precio;
-    this.cantidad = 1;
+    this.cantidad = cantidad;
     this.precioTotal = alfajor.precio;
   }
 
@@ -79,9 +79,31 @@ const alfajores = [
   },
 ];
 
-let carrito = [];
+let carrito;
 
 // ----- Declaración de funciones ----- //
+
+function chequearCarritoEnStorage() {
+  let contenidoEnStorage = JSON.parse(localStorage.getItem("carritoEnStorage"));
+  console.log("contenido en chequear Carrito en ls ", contenidoEnStorage);
+
+  // Si existe el array del carrito, lo retornará
+  if (contenidoEnStorage) {
+    let array = [];
+    for (let i = 0; i < contenidoEnStorage.length; i++) {
+      let alfajor = new Alfajor(
+        contenidoEnStorage[i],
+        contenidoEnStorage[i].cantidad
+      );
+      alfajor.actualizarPrecioTotal();
+      array.push(alfajor);
+    }
+
+    return array;
+  }
+  // Si no existe ese array en el LS, esta función devolverá un array vacío
+  return [];
+}
 
 // Imprime catálogo de alfajores en el HTML
 // Recibimos por parámetro el array
@@ -126,20 +148,18 @@ function imprimirProductosEnHTML(alfajores) {
     // el evento click seguido de la función que queremos que se ejecute
     // al disparar el evento
     boton.onclick = () => agregarAlCarrito(alfajor.id);
+
+    // boton.addEventListener("click", () => agregarAlCarrito(alfajor.id));
   }
 }
 
 // Recibe el contenido del carrito y lo imprime en el html
 // en una tabla
-function dibujarTabla(carrito) {
+function dibujarTabla(array) {
   let contenedor = document.getElementById("carrito");
   contenedor.innerHTML = "";
 
-  let precioTotal;
-
-  if (carrito) {
-    precioTotal = obtenerPrecioTotal(carrito);
-  }
+  let precioTotal = obtenerPrecioTotal(array);
 
   // Creamos el div que contendrá la tabla
   let tabla = document.createElement("div");
@@ -177,11 +197,11 @@ function dibujarTabla(carrito) {
   // Una vez que dibujamos la tabla, obtenemos el id del body de la tabla
   // donde imprimiremos los datos del array
   let bodyTabla = document.getElementById("bodyTabla");
-  for (let alfajor of carrito) {
+  for (let alfajor of array) {
     let datos = document.createElement("div");
     datos.innerHTML = `
             <tr>
-                <th scope="row">1</th>
+                <th scope="row"></th>
                 <td>${alfajor.marca}</td>
                 <td>${alfajor.cantidad}</td>
                 <td>$${alfajor.precioTotal}</td>
@@ -228,11 +248,15 @@ function agregarAlCarrito(idProducto) {
     // El alfajor no se encuentra en el carrito, así que
     // lo pusheamos al array asignándole la clase Alfajor
     // para poder acceder a sus métodos
-    carrito.push(new Alfajor(alfajores[idProducto]));
+    carrito.push(new Alfajor(alfajores[idProducto], 1));
   }
 
-  // Una vez que actualizamos el carrito, llamamos a la función
+  // Una vez que actualizamos el carrito, guardamos el carrito actualizado
+  // en el Storage.
+  // Volvemos a traernos ese array del storage para poder imprimirlo y
+  // Luego llamamos a la función
   // que dibuja la tabla en el html para visualizar los productos
+  localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
   dibujarTabla(carrito);
 }
 
@@ -249,8 +273,6 @@ function eliminarDelCarrito(id) {
   // Primero chequeamos el stock para saber si hay que restarle 1
   // o quitar el elemento del array
   if (alfajor.cantidad > 1) {
-    console.log(`cantidad disponible: ${alfajor.cantidad}`);
-
     // Obtenemos el índice donde se encuentra el alfajor
     // en el carrito de compras
     carrito[index].quitarUnidad();
@@ -268,8 +290,10 @@ function eliminarDelCarrito(id) {
     }
   }
 
+  localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
   dibujarTabla(carrito);
 }
+
 // Recorremos el array para obtener el precio total de la compra
 function obtenerPrecioTotal(array) {
   let precioTotal = 0;
@@ -279,7 +303,14 @@ function obtenerPrecioTotal(array) {
   }
 
   return precioTotal;
+
+  // return carrito.reduce((total, elemento) => total + elemento.precioTotal, 0);
 }
 
 // --- Invocación de funciones ---
 imprimirProductosEnHTML(alfajores);
+
+// Consulta al Storage para saber si hay información almacenada
+// Si hay datos, se imprimen en el HTML al refrescar la página
+carrito = chequearCarritoEnStorage();
+dibujarTabla(carrito);

@@ -1,24 +1,11 @@
-// Versión sin uso de Storage
-// Si refrescan la página todos los productos que agregamos
-// al carrito se perderán
-
-// El orden en el código es
-// 1. Constructores de clase
-// 2. Inicialización de variables
-// 3. Construcción de funciones
-// 4. Invocación de funciones
-
-// Cualquier sugerencia es bienvenida! Ya sea contenido que no haya quedado
-// del todo claro o en el que quieran profundizar.
-// Para lo que necesiten pueden escribirme por privado,
-// no importa si no son alumnos mios ^_^
+// Versión con uso de Storage
 
 class Alfajor {
-  constructor(alfajor) {
+  constructor(alfajor, cantidad) {
     this.id = alfajor.id;
     this.marca = alfajor.marca;
     this.precio = alfajor.precio;
-    this.cantidad = 1;
+    this.cantidad = cantidad;
     this.precioTotal = alfajor.precio;
   }
 
@@ -81,12 +68,32 @@ const alfajores = [
   },
 ];
 
-let carrito = [];
+let carrito;
 
 // ----- Declaración de funciones ----- //
 
-// Imprime catálogo de alfajores en el HTML
-// Recibimos por parámetro el array
+function chequearCarritoEnStorage() {
+  let contenidoEnStorage = JSON.parse(localStorage.getItem("carritoEnStorage"));
+  console.log("contenido en chequear Carrito en ls ", contenidoEnStorage);
+
+  // Si existe el array del carrito, lo retornará
+  if (contenidoEnStorage) {
+    let array = [];
+    for (let i = 0; i < contenidoEnStorage.length; i++) {
+      let alfajor = new Alfajor(
+        contenidoEnStorage[i],
+        contenidoEnStorage[i].cantidad
+      );
+      alfajor.actualizarPrecioTotal();
+      array.push(alfajor);
+    }
+
+    return array;
+  }
+  // Si no existe ese array en el LS, esta función devolverá un array vacío
+  return [];
+}
+
 function imprimirProductosEnHTML(alfajores) {
   // Obtenemos el div que contendrá nuestras cards
   let contenedor = document.getElementById("contenedor");
@@ -97,8 +104,7 @@ function imprimirProductosEnHTML(alfajores) {
     let card = document.createElement("div");
 
     // Agregamos el contenido a la card
-    // Esto es con clases de bootstrap
-    // Si necesitan una versión más sencilla haganmelo saber :)
+
     card.innerHTML = `
         <div class="card text-center" style="width: 18rem;">
             <div class="card-body">
@@ -118,30 +124,21 @@ function imprimirProductosEnHTML(alfajores) {
     // que obtuvimos desde el HTML
     contenedor.appendChild(card);
 
-    // Es hora de asignar el evento al botón
-    // Observen que al id del botón lo nombramos de manera dinámica, asignándole al nombre
-    // la palabra "agregar" seguida del id del alfajor. Esto nos crea un nombre único
-    // por cada botón, haciendo referencia a la card seleccionada
     let boton = document.getElementById(`agregar${alfajor.id}`);
 
-    // Al botón le pasamos dos parámetros:
-    // el evento click seguido de la función que queremos que se ejecute
-    // al disparar el evento
     boton.onclick = () => agregarAlCarrito(alfajor.id);
+
+    // boton.addEventListener("click", () => agregarAlCarrito(alfajor.id));
   }
 }
 
 // Recibe el contenido del carrito y lo imprime en el html
 // en una tabla
-function dibujarTabla(carrito) {
+function dibujarTabla(array) {
   let contenedor = document.getElementById("carrito");
   contenedor.innerHTML = "";
 
-  let precioTotal;
-
-  if (carrito) {
-    precioTotal = obtenerPrecioTotal(carrito);
-  }
+  let precioTotal = obtenerPrecioTotal(array);
 
   // Creamos el div que contendrá la tabla
   let tabla = document.createElement("div");
@@ -179,11 +176,12 @@ function dibujarTabla(carrito) {
   // Una vez que dibujamos la tabla, obtenemos el id del body de la tabla
   // donde imprimiremos los datos del array
   let bodyTabla = document.getElementById("bodyTabla");
-  for (let alfajor of carrito) {
+
+  for (let alfajor of array) {
     let datos = document.createElement("div");
     datos.innerHTML = `
             <tr>
-                <th scope="row">1</th>
+                <th scope="row"></th>
                 <td>${alfajor.marca}</td>
                 <td>${alfajor.cantidad}</td>
                 <td>$${alfajor.precioTotal}</td>
@@ -230,11 +228,10 @@ function agregarAlCarrito(idProducto) {
     // El alfajor no se encuentra en el carrito, así que
     // lo pusheamos al array asignándole la clase Alfajor
     // para poder acceder a sus métodos
-    carrito.push(new Alfajor(alfajores[idProducto]));
+    carrito.push(new Alfajor(alfajores[idProducto], 1));
   }
 
-  // Una vez que actualizamos el carrito, llamamos a la función
-  // que dibuja la tabla en el html para visualizar los productos
+  localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
   dibujarTabla(carrito);
 }
 
@@ -251,8 +248,6 @@ function eliminarDelCarrito(id) {
   // Primero chequeamos el stock para saber si hay que restarle 1
   // o quitar el elemento del array
   if (alfajor.cantidad > 1) {
-    console.log(`cantidad disponible: ${alfajor.cantidad}`);
-
     // Obtenemos el índice donde se encuentra el alfajor
     // en el carrito de compras
     carrito[index].quitarUnidad();
@@ -262,7 +257,7 @@ function eliminarDelCarrito(id) {
     // Para esto utilizamos el método splice
     // Este método sobreescribe el array original
     // Con alfajor id indicamos el índice del elemento en el array
-    // a eliminar. El 1 es la cantidad de elementos a eliminar, es este caso, 1 solo
+    // a eliminar. El 1 es la cantidad de elementos a eliminar, como en este caso
     carrito.splice(index, 1);
 
     if (carrito.lenght === 0) {
@@ -270,8 +265,10 @@ function eliminarDelCarrito(id) {
     }
   }
 
+  localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
   dibujarTabla(carrito);
 }
+
 // Recorremos el array para obtener el precio total de la compra
 function obtenerPrecioTotal(array) {
   let precioTotal = 0;
@@ -281,7 +278,14 @@ function obtenerPrecioTotal(array) {
   }
 
   return precioTotal;
+
+  // return carrito.reduce((total, elemento) => total + elemento.precioTotal, 0);
 }
 
 // --- Invocación de funciones ---
 imprimirProductosEnHTML(alfajores);
+
+// Consulta al Storage para saber si hay información almacenada
+// Si hay datos, se imprimen en el HTML al refrescar la página
+carrito = chequearCarritoEnStorage();
+dibujarTabla(carrito);
