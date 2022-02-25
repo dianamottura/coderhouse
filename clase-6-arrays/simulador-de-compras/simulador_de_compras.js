@@ -1,3 +1,6 @@
+// Link al video del afterclass explicando este código
+// https://coderhouse.zoom.us/rec/share/KqZhaMzLIjer4MZ6if1KbouuLC2LiADct_jlnd7f1mZiK-4Tv8xw7X_2KLHpD1v-.OG6wKgtq8P2wzBgH
+
 // Arrays y contenidos para la primera pre-entrega
 // Métodos de arrays: find(), filter(), sort(), findIndex()
 
