@@ -3,9 +3,6 @@
 // o bien crear elementos nuevos desde el js que se impriman
 // en el html
 
-// Este concepto lo vamos a entender mejor cuando veamos eventos
-
-// array de objetos
 const productos = [
     {
         id: 0,

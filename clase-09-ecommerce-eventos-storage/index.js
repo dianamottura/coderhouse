@@ -1,5 +1,4 @@
 // Versión con uso de Storage
-
 class Alfajor {
     constructor(alfajor, cantidad) {
         this.id = alfajor.id;
@@ -71,37 +70,50 @@ const alfajores = [
 let carrito;
 
 // ----- Declaración de funciones ----- //
-
 function chequearCarritoEnStorage() {
     let contenidoEnStorage = JSON.parse(localStorage.getItem("carritoEnStorage"));
-    console.log("contenido en chequear Carrito en ls ", contenidoEnStorage);
 
     // Si existe el array del carrito, lo retornará
+    // y actualizará la tabla de compras
     if (contenidoEnStorage) {
+        // Al traer los datos del storage perdemos las instancias de clase
+        // Para recuperarlas genero una copia del array con la info del storage
+        // instanciando la clase en cada objeto del array
         let array = [];
-        for (let i = 0; i < contenidoEnStorage.length; i++) {
-            let alfajor = new Alfajor(contenidoEnStorage[i], contenidoEnStorage[i].cantidad);
+
+        for (const objeto of contenidoEnStorage) {
+            // Recibo los datos del objeto del storage
+            // los guardo en la variable alfajor con la instancia de clase
+            let alfajor = new Alfajor(objeto, objeto.cantidad);
             alfajor.actualizarPrecioTotal();
+
+            // Envio ese objeto instanciado al arrray
             array.push(alfajor);
         }
 
+        imprimirTabla(array);
+
+        // Una vez que terminamos, la función retorna ese nuevo array con los datos recuperados
         return array;
     }
+
     // Si no existe ese array en el LS, esta función devolverá un array vacío
     return [];
 }
 
-function imprimirProductosEnHTML(alfajores) {
+function imprimirProductosEnHTML(array) {
     // Obtenemos el div que contendrá nuestras cards
     let contenedor = document.getElementById("contenedor");
+    contenedor.innerHTML = "";
 
     // Recorremos el array y por cada item imprimimos una card
-    for (const alfajor of alfajores) {
+    for (const alfajor of array) {
         // Creamos el contendor individual para cada card
         let card = document.createElement("div");
 
         // Agregamos el contenido a la card
-
+        // Observar cómo el nombre del id del botón se genera
+        // de manera dinámica
         card.innerHTML = `
         <div class="card text-center" style="width: 18rem;">
             <div class="card-body">
@@ -111,7 +123,7 @@ function imprimirProductosEnHTML(alfajores) {
                 <p class="card-text">$${alfajor.precio}</p>
 
                 <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                    <button id="agregar${alfajor.id}" type="button" onclick="" class="btn btn-dark"> Agregar </button>
+                    <button id="agregar${alfajor.id}" type="button" class="btn btn-dark"> Agregar </button>
                 </div>
             </div>
         </div>      
@@ -121,49 +133,116 @@ function imprimirProductosEnHTML(alfajores) {
         // que obtuvimos desde el HTML
         contenedor.appendChild(card);
 
+        // Luego de agregar la card al DOM,
+        // asignamos el evento al botón correspondiente, habiendo nombrado su id de manera
+        // dinámica
         let boton = document.getElementById(`agregar${alfajor.id}`);
-
-        boton.onclick = () => agregarAlCarrito(alfajor.id);
-
-        // boton.addEventListener("click", () => agregarAlCarrito(alfajor.id));
+        boton.addEventListener("click", () => agregarAlCarrito(alfajor.id));
     }
+}
+
+function agregarAlCarrito(idProducto) {
+    // Verificamos si ese tipo de alfajor ya se encuentra en el array
+    // con el método find()
+    // Este método en caso de dar true, nos devuelve el primer elemento del array
+    // que cumple con la condición de búsqueda
+    let alfajorEnCarrito = carrito.find((elemento) => elemento.id === idProducto);
+
+    if (alfajorEnCarrito) {
+        // Si el alfajor se encuentra en el carrito, alfajorEnCarrito devolverá
+        // true, por lo cual se ejecutará este bloque de código
+        // y se le sumará uno a la cantidad de esa marca en el carrito
+
+        // Primero debemos hallar el index donde se encuentra
+        // el alfajor en el carrito (ya que no va a ser el mismo que el del array alfajores);
+        let index = carrito.findIndex((elemento) => elemento.id === alfajorEnCarrito.id);
+
+        // Una vez que obtenemos el index donde se halla el elemento ya agregado
+        // al carrito, invocamos a los métodos que actualizaran unidades y precio total
+        // De unidades repetidas
+        carrito[index].agregarUnidad();
+        carrito[index].actualizarPrecioTotal();
+    } else {
+        // El alfajor no se encuentra en el carrito, así que
+        // lo pusheamos al array asignándole la clase Alfajor
+        // para poder acceder a sus métodos
+
+        // En esta instancia, tenemos que inicializar la propiedad
+        // cantidad en 1. Es el 2do argumento que pasamos al instanciar
+        // el objeto
+        carrito.push(new Alfajor(alfajores[idProducto], 1));
+    }
+
+    // Actualizamos el storage y el contenido de la tabla
+    localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
+    imprimirTabla(carrito);
+}
+
+function eliminarDelCarrito(id) {
+    // Buscamos el item en el carrito
+    // Primero buscamos que coincida el ID recibido con el ID del objeto
+    // a eleminar en el carrito
+    let alfajor = carrito.find((alfajor) => alfajor.id === id);
+
+    // Aquí buscamos el índice del producto en el carrito a eliminar
+    let index = carrito.findIndex((element) => element.id === alfajor.id);
+
+    // Primero chequeamos el stock para saber si hay que restarle 1
+    // al stock o quitar el elemento del array
+    if (alfajor.cantidad > 1) {
+        // Si hay más de una unidad de ese producto, invocamos los métodos correspondientes
+        carrito[index].quitarUnidad();
+        carrito[index].actualizarPrecioTotal();
+    } else {
+        // Si queda solo una unidad, se elimina del array
+        // Para esto utilizamos el método splice
+        // Este método sobreescribe el array original
+        // Con alfajor id indicamos el índice del elemento en el array
+        // a eliminar. El 1 es la cantidad de elementos a eliminar, como en este caso
+        carrito.splice(index, 1);
+    }
+
+    swal("Producto eliminado con éxito", "", "success");
+
+    localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
+    imprimirTabla(carrito);
+}
+
+function eliminarCarrito() {
+    carrito = [];
+    localStorage.removeItem("carritoEnStorage");
+
+    document.getElementById("carrito").innerHTML = "";
+    document.getElementById("acciones-carrito").innerHTML = "";
+}
+
+function obtenerPrecioTotal(array) {
+    return array.reduce((total, elemento) => total + elemento.precioTotal, 0);
 }
 
 // Recibe el contenido del carrito y lo imprime en el html
 // en una tabla
-function dibujarTabla(array) {
+function imprimirTabla(array) {
+    let precioTotal = obtenerPrecioTotal(array);
     let contenedor = document.getElementById("carrito");
     contenedor.innerHTML = "";
-
-    let precioTotal = obtenerPrecioTotal(array);
 
     // Creamos el div que contendrá la tabla
     let tabla = document.createElement("div");
 
     // A ese div le agregaremos todos los datos de la tabla
     tabla.innerHTML = `
-        <table id="tablaCarrito" class="table">
-            <thead>
+        <table id="tablaCarrito" class="table table-striped">
+            <thead>         
                 <tr>
-                <th scope="col">#</th>
-                    <th scope="col">Item</th>
-                    <th scope="col">Cantidad</th>
-                    <th scope="col">Precio Parcial</th>
-                    <th scope="col">Accion</th>
+                    <th>Item</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Accion</th>
                 </tr>
             </thead>
 
-            <tbody id="bodyTabla" class="table">
-                <tr>
-                <td scope="col">Total: $${precioTotal}</td>
-                    <td scope="col"> </td>
-                    <td scope="col"> </td>
-                    <td scope="col"> </td>
-                </tr>
-            <tr> 
-                <td> <button id="vaciarCarrito" class="btn btn-dark"> Vaciar Carrito </button> </td>
-            </tr>
-
+            <tbody id="bodyTabla">
             </tbody>
         </table>
     `;
@@ -175,114 +254,46 @@ function dibujarTabla(array) {
     let bodyTabla = document.getElementById("bodyTabla");
 
     for (let alfajor of array) {
-        let datos = document.createElement("div");
+        let datos = document.createElement("tr");
         datos.innerHTML = `
-            <tr>
-                <th scope="row"></th>
-                <td scope="col">${alfajor.marca}</td>
-                <td scope="col">${alfajor.cantidad}</td>
-                <td scope="col">$${alfajor.precioTotal}</td>
-                <td scope="col"><button id="eliminar${alfajor.id}" type="button" class="btn btn-dark">Eliminar</button></td>
-            </tr>
+                <td>${alfajor.marca}</td>
+                <td>${alfajor.cantidad}</td>
+                <td>$${alfajor.precioTotal}</td>
+                <td><button id="eliminar${alfajor.id}" class="btn btn-dark">Eliminar</button></td>
       `;
 
         bodyTabla.appendChild(datos);
 
-        // Asignamos el evento click al botón para eliminar un producto del carrito
-        $(`#eliminar${alfajor.id}`).on("click", () => {
-            eliminarDelCarrito(alfajor.id);
-        });
-    }
-}
-
-function agregarAlCarrito(idProducto) {
-    // Verificamos si ese tipo de alfajor ya se encuentra en el array
-    // con el método find()
-    // Este método en caso de dar true, nos devuelve el primer elemento del array
-    // que cumple con la condición de búsqueda
-    let alfajorEnCarrito = carrito.find((elemento) => {
-        if (elemento.id == idProducto) {
-            return true;
-        }
-    });
-
-    if (alfajorEnCarrito) {
-        // Si el alfajor se encuentra en el carrito, alfajorEnCarrito devolverá
-        // true, por lo cual se ejecutará este bloque de código
-        // y se le sumará uno a la cantidad de esa marca en el carrito
-
-        // Primero debemos hallar el index donde se encuentra
-        // el alfajor en el carrito (ya que no va a ser el mismo que el del array alfajores);
-        let index = carrito.findIndex((elemento) => {
-            if (elemento.id === alfajorEnCarrito.id) {
-                return true;
-            }
-        });
-
-        carrito[index].agregarUnidad();
-        carrito[index].actualizarPrecioTotal();
-    } else {
-        // El alfajor no se encuentra en el carrito, así que
-        // lo pusheamos al array asignándole la clase Alfajor
-        // para poder acceder a sus métodos
-        carrito.push(new Alfajor(alfajores[idProducto], 1));
+        let botonEliminar = document.getElementById(`eliminar${alfajor.id}`);
+        botonEliminar.addEventListener("click", () => eliminarDelCarrito(alfajor.id));
     }
 
-    localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
-    dibujarTabla(carrito);
+    let accionesCarrito = document.getElementById("acciones-carrito");
+    accionesCarrito.innerHTML = `
+		<h5>PrecioTotal: $${precioTotal}</h5></br>
+		<button id="vaciarCarrito" onclick="eliminarCarrito()" class="btn btn-dark">Vaciar Carrito</button>
+	`;
 }
 
-function eliminarDelCarrito(id) {
-    // Buscamos el item en el carrito
-    let alfajor = carrito.find((alfajor) => alfajor.id === id);
+function filtrarBusqueda(e) {
+    e.preventDefault();
 
-    let index = carrito.findIndex((element) => {
-        if (element.id === alfajor.id) {
-            return true;
-        }
-    });
+    // Tomo el value del input y le agrego toLowerCase para que la búsqueda no sea
+    // case sensitive
+    let ingreso = document.getElementById("busqueda").value.toLowerCase();
+    let arrayFiltrado = alfajores.filter((elemento) => elemento.marca.toLowerCase().includes(ingreso));
 
-    // Primero chequeamos el stock para saber si hay que restarle 1
-    // o quitar el elemento del array
-    if (alfajor.cantidad > 1) {
-        // Obtenemos el índice donde se encuentra el alfajor
-        // en el carrito de compras
-        carrito[index].quitarUnidad();
-        carrito[index].actualizarPrecioTotal();
-    } else {
-        // Si queda solo una unidad, se elimina del array
-        // Para esto utilizamos el método splice
-        // Este método sobreescribe el array original
-        // Con alfajor id indicamos el índice del elemento en el array
-        // a eliminar. El 1 es la cantidad de elementos a eliminar, como en este caso
-        carrito.splice(index, 1);
-
-        if (carrito.lenght === 0) {
-            carrito = [];
-        }
-    }
-
-    localStorage.setItem("carritoEnStorage", JSON.stringify(carrito));
-    dibujarTabla(carrito);
+    imprimirProductosEnHTML(arrayFiltrado);
 }
 
-// Recorremos el array para obtener el precio total de la compra
-function obtenerPrecioTotal(array) {
-    let precioTotal = 0;
+// --- Eventos
+let btnFiltrar = document.getElementById("btnFiltrar");
+btnFiltrar.addEventListener("click", filtrarBusqueda);
 
-    for (const producto of array) {
-        precioTotal += producto.precioTotal;
-    }
-
-    return precioTotal;
-
-    // return carrito.reduce((total, elemento) => total + elemento.precioTotal, 0);
-}
-
+// Ejecución del código
 // --- Invocación de funciones ---
 imprimirProductosEnHTML(alfajores);
 
 // Consulta al Storage para saber si hay información almacenada
 // Si hay datos, se imprimen en el HTML al refrescar la página
 carrito = chequearCarritoEnStorage();
-dibujarTabla(carrito);

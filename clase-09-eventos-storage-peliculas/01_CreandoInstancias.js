@@ -6,6 +6,7 @@ class Pelicula {
     }
 }
 
+// let listadoPeliculas = [];
 // Validación para cargar un array tomando los datos almacenados en el LS
 // Si no hay nada, devuelve un array vacío
 // Esto lo pueden adaptar a su carrito de compras
@@ -19,10 +20,10 @@ function cargarListado() {
 }
 
 //  Funcion para guardar el array en localStorage
-// function guardarListado(listadoPeliculas) {
-//     localStorage.setItem("listadoPeliculas", JSON.stringify(listadoPeliculas));
-//     mostrarListado(listadoPeliculas);
-// }
+function guardarListado(listadoPeliculas) {
+    localStorage.setItem("listadoPeliculas", JSON.stringify(listadoPeliculas));
+    mostrarListado(listadoPeliculas);
+}
 
 //  Funcion para guardar pelicula
 // Obtiene los datos ingresados en el form accediento al value de los inputs

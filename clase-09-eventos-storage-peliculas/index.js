@@ -50,12 +50,13 @@ function mostrarEnFavoritos(pelicula) {
 function mostrarListado(listadoPeliculas) {
     // Obtenemos el id del contenedor del listado de pelis
     let listado = document.getElementById("listado");
-    listado.textContent = "";
+    //listado.textContent = "";
 
     // Recorremos todo el array agregando cada tarjeta generada
     // en el contenedor del listado
     for (const pelicula of listadoPeliculas) {
-        listado.innerHTML = `
+        let div = document.createElement("div");
+        div.innerHTML = `
 			<div class="tarjeta">
 				<h3>${pelicula.nombre}</h3>
 				<p>${pelicula.duracion}<p>
@@ -63,6 +64,8 @@ function mostrarListado(listadoPeliculas) {
 				<button id="${pelicula.nombre}" type="button>Guardar en Favoritos</button>
 			</div>
 		`;
+
+        listado.appendChild(div);
         let boton = document.getElementById(`${pelicula.nombre}`);
         boton.onclick = () => mostrarEnFavoritos(pelicula);
     }
